@@ -32,7 +32,7 @@ if (process.env.NODE_ENV === 'prod') {
 	})
 
 	stripeSkWatcher.on('change', data => {
-		stripe = require('stripe')(data);
+		stripe = require('stripe')(data.Value);
 	});
 } else {
 	stripe = require('stripe')(process.env.STRIPE_SK);
