@@ -70,12 +70,11 @@ router.post('/secret', async (req, res) => {
 		const data = {
 			amount: amount * 100,
 			currency: currency,
-			payment_method_types: ['card'],
 			metadata: {event_id: eventId}
 		}
 
 		if (!paymentIntent) {
-			paymentIntent = await stripe.paymentIntents.create(data);
+			paymentIntent = await stripe.paymentIntents.create({ ...data, payment_method_types: ['card'] });
 		} else {
 			await stripe.paymentIntents.update(
 				paymentIntent.id,
