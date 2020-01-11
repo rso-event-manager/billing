@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: billing-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: billing
+  template:
+    metadata:
+      labels:
+        app: billing
+    spec:
+      containers:
+        - image: ribvid/rso-billing:1.0.0
+          name: billing
+          env:
+            - name: CONSUL
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              name: server
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: billing
+spec:
+  ports:
+    - port: 80
+      protocol: TCP
+      targetPort: 8080
+  selector:
+    app: billing
