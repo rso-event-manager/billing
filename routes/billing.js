@@ -73,8 +73,8 @@ router.post('/secret', async (req, res) => {
 			metadata: {event_id: eventId}
 		}
 
-		if (!paymentIntent) {
-			paymentIntent = await stripe.paymentIntents.create({ ...data, payment_method_types: ['card'] });
+		if (!paymentIntent || paymentIntent.status === 'succeeded') {
+			paymentIntent = await stripe.paymentIntents.create(data);
 		} else {
 			await stripe.paymentIntents.update(
 				paymentIntent.id,
