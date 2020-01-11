@@ -70,7 +70,8 @@ router.post('/secret', async (req, res) => {
 		const data = {
 			amount: amount * 100,
 			currency: currency,
-			metadata: {event_id: eventId}
+			metadata: {event_id: eventId},
+			payment_method_types: ['card'],
 		}
 
 		if (!paymentIntent || paymentIntent.status === 'succeeded') {
@@ -84,7 +85,10 @@ router.post('/secret', async (req, res) => {
 
 		return res.status(200).json({ client_secret: paymentIntent.client_secret });
 	} catch (err) {
-		return res.status(500).json(err.message)
+		return res.status(500).json({
+			message: err.message,
+			paymentIntent: paymentIntent
+		})
 	}
 })
 
