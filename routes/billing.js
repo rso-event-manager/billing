@@ -140,7 +140,7 @@ router.post('/webhook', bodyParser.raw({type: 'application/json'}), (request, re
 							console.log(` [x] Assert queue ${topic}`);
 
 							channel.assertQueue(topic)
-							channel.sendToQueue(queue, Buffer.from(msg))
+							channel.sendToQueue(topic, Buffer.from(msg))
 
 							console.log(` [x] Sent ${msg}`);
 						}
