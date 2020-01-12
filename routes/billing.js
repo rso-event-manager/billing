@@ -129,7 +129,7 @@ router.post('/webhook', bodyParser.raw({type: 'application/json'}), (request, re
 
 			console.log(` [x] Connect to ${process.env.RABBITMQ}`);
 
-			amqp.connect(process.env.RABBITMQ), function (err, conn) {
+			amqp.connect(process.env.RABBITMQ, function (err, conn) {
 				if (err) {
 					console.log(err.message)
 				} else {
@@ -146,7 +146,7 @@ router.post('/webhook', bodyParser.raw({type: 'application/json'}), (request, re
 						}
 					})
 				}
-			}
+			})
 
 			break
 		// ... handle other event types
