@@ -126,7 +126,7 @@ router.post('/webhook', bodyParser.raw({type: 'application/json'}), (request, re
 
 			const msg = {status: 'sold', eventId: paymentIntent.metadata.event_id}
 
-			console.log(" [x] Connect to %s", process.env.RABBITMQ);
+			console.log(` [x] Connect to ${process.env.RABBITMQ}`);
 
 			amqp.connect(process.env.RABBITMQ), function (err, conn) {
 				if (err) {
@@ -136,14 +136,12 @@ router.post('/webhook', bodyParser.raw({type: 'application/json'}), (request, re
 						if (err1) {
 							console.log(err1.message)
 						} else {
-							console.log(" [x] Assert queue %s", topic);
+							console.log(` [x] Assert queue ${topic}`);
 
-							channel.assertQueue(topic, {
-								durable: false
-							})
+							channel.assertQueue(topic)
 							channel.sendToQueue(queue, Buffer.from(msg))
 
-							console.log(" [x] Sent %s", msg);
+							console.log(` [x] Sent ${msg}`);
 						}
 					})
 				}
