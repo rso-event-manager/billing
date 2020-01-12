@@ -126,6 +126,7 @@ router.post('/webhook', bodyParser.raw({type: 'application/json'}), (request, re
 			console.log('Event ID: ' + paymentIntent.metadata.event_id)
 			rabbit
 				.default()
+				.queue({name: topic})
 				.publish({status: 'sell', eventId: paymentIntent.metadata.event_id}, {key: topic})
 				.on('drain', rabbit.close)
 
