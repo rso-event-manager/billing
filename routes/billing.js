@@ -113,7 +113,7 @@ router.post('/webhook', bodyParser.raw({type: 'application/json'}), (request, re
 
 	try {
 		event = request.body;
-		console.log('Webhook. Event type,' event.type)
+		console.log('Webhook. Event type', event.type)
 	} catch (err) {
 		response.status(400).send(`Webhook Error: ${err.message}`);
 	}
