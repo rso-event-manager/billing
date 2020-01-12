@@ -125,8 +125,6 @@ router.post('/webhook', bodyParser.raw({type: 'application/json'}), (request, re
 			console.log('PaymentIntent was successful!')
 			console.log('Event ID: ' + paymentIntent.metadata.event_id)
 
-			const msg = {status: 'sold', eventId: paymentIntent.metadata.event_id}
-
 			console.log(` [x] Connect to ${process.env.RABBITMQ}`);
 
 			amqp.connect(process.env.RABBITMQ, function (err, conn) {
@@ -140,9 +138,9 @@ router.post('/webhook', bodyParser.raw({type: 'application/json'}), (request, re
 							console.log(` [x] Assert queue ${topic}`);
 
 							channel.assertQueue(topic)
-							channel.sendToQueue(topic, Buffer.from(msg))
+							channel.sendToQueue(topic, Buffer.from(paymentIntent.metadata.event_id))
 
-							console.log(` [x] Sent ${msg}`);
+							console.log(` [x] Sent ${paymentIntent.metadata.event_id}`);
 						}
 					})
 				}
