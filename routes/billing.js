@@ -6,8 +6,7 @@ const consul = require('consul')({
 })
 const axios = require('axios')
 const bodyParser = require('body-parser')
-const jackrabbit = require('jackrabbit')
-const rabbit = jackrabbit(process.env.RABBITMQ);
+const amqp = require('amqplib/callback_api')
 
 let eventsApi = 'http://localhost:3000/'
 let stripe = null
@@ -124,10 +123,31 @@ router.post('/webhook', bodyParser.raw({type: 'application/json'}), (request, re
 			const paymentIntent = event.data.object;
 			console.log('PaymentIntent was successful!')
 			console.log('Event ID: ' + paymentIntent.metadata.event_id)
-			rabbit
-				.default()
-				.publish({status: 'sold', eventId: paymentIntent.metadata.event_id}, {key: topic})
-				.on('drain', rabbit.close)
+
+			const msg = {status: 'sold', eventId: paymentIntent.metadata.event_id}
+
+			console.log(" [x] Connect to %s", process.env.RABBITMQ);
+
+			amqp.connect(process.env.RABBITMQ), function (err, conn) {
+				if (err) {
+					console.log(err.message)
+				} else {
+					conn.createChannel(function (err1, channel) {
+						if (err1) {
+							console.log(err1.message)
+						} else {
+							console.log(" [x] Assert queue %s", topic);
+
+							channel.assertQueue(topic, {
+								durable: false
+							})
+							channel.sendToQueue(queue, Buffer.from(msg))
+
+							console.log(" [x] Sent %s", msg);
+						}
+					})
+				}
+			}
 
 			break
 		// ... handle other event types
