@@ -5,10 +5,13 @@ const consul = require('consul')({
 	port: 8500
 })
 const axios = require('axios')
-const bodyParser = require('body-parser');
+const bodyParser = require('body-parser')
+const jackrabbit = require('jackrabbit')
+const rabbit = jackrabbit(process.env.RABBITMQ);
 
 let eventsApi = 'http://localhost:3000/'
 let stripe = null
+let topic = 'events'
 
 if (process.env.NODE_ENV === 'prod') {
 	const eventApiWatcher = consul.watch({
@@ -33,6 +36,20 @@ if (process.env.NODE_ENV === 'prod') {
 
 	stripeSkWatcher.on('change', data => {
 		stripe = require('stripe')(data.Value);
+	});
+
+	const rmqWatcher = consul.watch({
+		method: consul.kv.get,
+		options: {key: 'rmq/events'}
+	})
+
+	rmqWatcher.on('change', data => {
+		topic = data.Value
+	})
+
+	rmqWatcher.on('error', err => {
+		logger.error(err.message)
+		lightship.shutdown()
 	});
 } else {
 	stripe = require('stripe')(process.env.STRIPE_SK);
@@ -83,7 +100,7 @@ router.post('/secret', async (req, res) => {
 			)
 		}
 
-		return res.status(200).json({ client_secret: paymentIntent.client_secret });
+		return res.status(200).json({client_secret: paymentIntent.client_secret});
 	} catch (err) {
 		return res.status(500).json({
 			message: err.message,
@@ -107,12 +124,11 @@ router.post('/webhook', bodyParser.raw({type: 'application/json'}), (request, re
 			const paymentIntent = event.data.object;
 			console.log('PaymentIntent was successful!')
 			console.log('Event ID: ' + paymentIntent.metadata.event_id)
-			axios.post(`${eventsApi}/sellTicket`, {
-				eventId: paymentIntent.metadata.event_id,
-			}).catch(err => {
-				console.log(err);
-				return response.status(500).json(err.message)
-			})
+			rabbit
+				.default()
+				.publish({status: 'sell', eventId: paymentIntent.metadata.event_id}, {key: topic})
+				.on('drain', rabbit.close)
+
 			break
 		// ... handle other event types
 		default:

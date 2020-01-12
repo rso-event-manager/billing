@@ -16,6 +16,8 @@ spec:
         - image: ribvid/rso-billing:1.0.0
           name: billing
           env:
+            - name: RABBITMQ
+              value: "amqp://xhynquga:TsoWIxuD8ZRXu0Mjq0qrB-IEdOUJgDfs@stingray.rmq.cloudamqp.com/xhynquga"
             - name: CONSUL
               valueFrom:
                 fieldRef:
